@@ -1,8 +1,12 @@
 from flask import Flask, render_template
 from database import conn
 
-from groups import get_group_list
-from students import get_students_list
+from helpers import (
+    get_group_list,
+    get_students_list,
+    get_subjects_list,
+    get_teachers_list,
+)
 
 
 app = Flask(__name__)
@@ -26,3 +30,23 @@ def get_students():
     students = get_students_list(students=student_list)
 
     return render_template('students.html', students=students)
+
+
+@app.route('/teachers', methods=['GET'])
+def get_teachers():
+    con = conn.cursor()
+    con.execute('SELECT * FROM t_teacher;')
+    teacher_list = con.fetchall()
+    teachers = get_teachers_list(teachers=teacher_list)
+
+    return render_template('teachers.html', teachers=teachers)
+
+
+@app.route('/subjects', methods=['GET'])
+def get_subjects():
+    con = conn.cursor()
+    con.execute('SELECT * FROM t_subject;')
+    subject_list = con.fetchall()
+    subjects = get_subjects_list(subjects=subject_list)
+
+    return render_template('subjects.html', subjects=subjects)
