@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Список преподавателей, групп, предметов</h1>
+    <table class="table">
+        <thead>
+            <tr>
+            <th scope="col">Преподаватель</th>
+            <th scope="col">Группа</th>
+            <th scope="col">Предмет</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tech_gr in teachers_groups %}
+                <tr>
+                    <th scope="row">{{ tech_gr.teacher_fullname }}</th>
+                    <td>{{ tech_gr.group_name }}</td>
+                    <td>{{ tech_gr.subject_name }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

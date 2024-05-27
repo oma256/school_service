@@ -53,3 +53,26 @@ def get_subjects_list(subjects):
         result.append({'id': subject[0], 'name': subject[1]})
     
     return result
+
+
+def get_teachers_groups_list(teachers_groups):
+    result = []
+    con = conn.cursor()
+
+    for tech_gr in teachers_groups:
+        con.execute(f'SELECT * FROM t_teacher WHERE id={tech_gr[1]}')
+        teacher = con.fetchone()
+
+        con.execute(f'SELECT * FROM t_group WHERE id={tech_gr[2]}')
+        group = con.fetchone()
+
+        con.execute(f'SELECT * FROM t_subject WHERE id={tech_gr[3]}')
+        subject = con.fetchone()
+
+        result.append({
+            'teacher_fullname': f'{teacher[1]} {teacher[2]}',
+            'group_name': group[1],
+            'subject_name': subject[1],
+        })
+
+    return result
