@@ -1,4 +1,4 @@
-from database import conn
+from flask import g
 
 
 def get_group_list(groups):
@@ -12,11 +12,11 @@ def get_group_list(groups):
 
 def get_students_list(students):
     result = []
-    con = conn.cursor()
+    db_cursor = g.db_conn.cursor()
 
     for student in students:
-        con.execute(f'SELECT * FROM t_group WHERE id={student[3]}')
-        group = con.fetchone()
+        db_cursor.execute(f'SELECT * FROM t_group WHERE id={student[3]}')
+        group = db_cursor.fetchone()
 
         result.append({
             'id': student[0], 
@@ -30,11 +30,11 @@ def get_students_list(students):
 
 def get_teachers_list(teachers):
     result = []
-    con = conn.cursor()
+    db_cursor = g.db_conn.cursor()
 
     for teacher in teachers:
-        con.execute(f'SELECT * FROM t_position WHERE id={teacher[3]}')
-        position = con.fetchone()
+        db_cursor.execute(f'SELECT * FROM t_position WHERE id={teacher[3]}')
+        position = db_cursor.fetchone()
 
         result.append({
             'id': teacher[0],
@@ -57,17 +57,17 @@ def get_subjects_list(subjects):
 
 def get_teachers_groups_list(teachers_groups):
     result = []
-    con = conn.cursor()
+    db_cursor = g.db_conn.cursor()
 
     for tech_gr in teachers_groups:
-        con.execute(f'SELECT * FROM t_teacher WHERE id={tech_gr[1]}')
-        teacher = con.fetchone()
+        db_cursor.execute(f'SELECT * FROM t_teacher WHERE id={tech_gr[1]}')
+        teacher = db_cursor.fetchone()
 
-        con.execute(f'SELECT * FROM t_group WHERE id={tech_gr[2]}')
-        group = con.fetchone()
+        db_cursor.execute(f'SELECT * FROM t_group WHERE id={tech_gr[2]}')
+        group = db_cursor.fetchone()
 
-        con.execute(f'SELECT * FROM t_subject WHERE id={tech_gr[3]}')
-        subject = con.fetchone()
+        db_cursor.execute(f'SELECT * FROM t_subject WHERE id={tech_gr[3]}')
+        subject = db_cursor.fetchone()
 
         result.append({
             'teacher_fullname': f'{teacher[1]} {teacher[2]}',

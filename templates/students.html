@@ -4,25 +4,21 @@
     <h1>Список студентов</h1>
     <div class="row">
         <div class="col">
-            <input type="text" class="form-control" placeholder="Имя" aria-label="group_name">
+            <input type="text" id="first_name_input" class="form-control" placeholder="Имя" aria-label="group_name">
         </div>
         <div class="col">
-            <input type="text" class="form-control" placeholder="Фамилия" aria-label="group_name">
+            <input type="text" id="last_name_input" class="form-control" placeholder="Фамилия" aria-label="group_name">
         </div>
         <div class="col">
-            <div class="dropdown">
-                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
-                    Выберите группу
-                </button>
-                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-                    <li><a class="dropdown-item" href="#">2A</a></li>
-                    <li><a class="dropdown-item" href="#">3C</a></li>
-                    <li><a class="dropdown-item" href="#">4B</a></li>
-                </ul>
-            </div>
+            <select class="form-select" id="group_id_select" aria-label="Default select example">
+                <option selected>Выбрите группу</option>
+                {% for group in groups %}
+                    <option value="{{ group.id }}">{{ group.name }}</option>
+                {% endfor %}
+            </select>
         </div>
         <div class="col">
-            <button id='group_add_btn' type="button" class="btn btn-primary">Добавить</button>
+            <button id='student_add_btn' type="button" class="btn btn-primary">Добавить</button>
         </div>
     </div>
     <table class="table">
