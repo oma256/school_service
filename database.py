@@ -7,12 +7,12 @@ from settings import DATABASE
 def db_connect(func):
 
     @wraps(func)
-    def wrapper():
+    def wrapper(*args, **kwargs):
         g.db_conn = psycopg2.connect(**DATABASE)
         g.db_conn.autocommit = True
 
         try:
-            return func()
+            return func(*args, **kwargs)
         finally:
             g.db_conn.close()
 

@@ -1,5 +1,7 @@
 'use strict'
 
+
+// Логика добавления группы в Базу Данных
 const group_add_btn = document.getElementById('group_add_btn')
 
 group_add_btn.onclick = () => {
@@ -24,4 +26,16 @@ group_add_btn.onclick = () => {
     }).catch(error => {
         console.log('Ошибка при добавлении в БД,', error)
     })
+}
+
+
+// Логика удаления группы из базы данных
+
+const groupDeleteButtons = document.getElementsByClassName('btn-danger')
+
+for (let button of groupDeleteButtons) {
+    button.addEventListener('click', function (event) {
+        const listItem = event.target.parentElement;
+        listItem.remove();
+    });
 }
