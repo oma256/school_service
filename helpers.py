@@ -23,6 +23,7 @@ def get_students_list(students):
             'first_name': student[1],
             'last_name': student[2],
             'group_name': group[1],
+            'group_id': group[0],
         })
 
     return result
