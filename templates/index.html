@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Список</h1>
+    <button type="button" 
+            class="btn btn-primary"
+            data-bs-toggle="modal" 
+            data-bs-target="#addModal">Добавить</button>
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Преподаватель</th>
+                <th scope="col">Группа</th>
+                <th scope="col">Предмет</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in data.list %}
+                <tr>
+                    <th scope="row">{{ item.id }}</th>
+                    <td>{{ item.teacher_fullname }}</td>
+                    <td>{{ item.group_name }}</td>
+                    <td>{{ item.subject_name }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="modal" tabindex="-1" id="addModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Добавить</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addForm">
+                        <div class="mb-3">
+                            <label for="add_teacher_id" class="form-label">Преподаватель</label>
+                            <select class="form-select" id="add_teacher_id" name="teacher_id">
+                                {% for teacher in data.teachers %}
+                                    <option value="{{ teacher.id }}">{{ teacher.first_name }} {{ teacher.last_name }} ({{teacher.position_name}})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="add_group_id" class="form-label">Группа</label>
+                            <select class="form-select" id="add_group_id" name="group_id">
+                                {% for group in data.groups %}
+                                    <option value="{{ group.id }}">{{ group.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="add_subject_id" class="form-label">Предмет</label>
+                            <select class="form-select" id="add_subject_id" name="subject_id">
+                                {% for subject in data.subjects %}
+                                    <option value="{{ subject.id }}">{{ subject.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                    <button type="button" class="btn btn-primary" id="addBtn" onclick="addData()">Сохранить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -8,11 +8,32 @@ from helpers import (
     get_subjects_list,
     get_teachers_list,
     get_teachers_groups_list,
+    get_index_page_data,
 )
 
 
 app = Flask(__name__)
 CORS(app=app)
+
+
+@app.route('/', methods=['GET', 'POST'])
+@db_connect
+def index():
+    db_cursor = g.db_conn.cursor()
+    if request.method == 'GET':
+        data = get_index_page_data()
+        return render_template(template_name_or_list='index.html', data=data)
+    elif request.method == 'POST':
+        teacher_id = int(request.json.get('teacher_id'))
+        group_id = int(request.json.get('group_id'))
+        subject_id = int(request.json.get('subject_id'))
+
+        db_cursor.execute(
+            'INSERT INTO t_teachers_groups_subjects (teacher_id, group_id, subject_id) VALUES (%s, %s, %s)',
+            (teacher_id, group_id, subject_id)
+        )
+
+        return {'status': 'OK'}
 
 
 @app.route('/students', methods=['GET', 'POST', 'PUT', 'DELETE'])

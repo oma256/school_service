@@ -1,6 +1,61 @@
 from flask import g
 
 
+def get_index_page_data():
+    db_cursor = g.db_conn.cursor()
+
+    db_cursor.execute('SELECT * FROM t_teacher')
+    teachers = get_teachers_list(teachers=db_cursor.fetchall())
+
+    db_cursor.execute('SELECT * FROM t_group')
+    groups = get_group_list(groups=db_cursor.fetchall())
+
+    db_cursor.execute('SELECT * FROM t_subject')
+    subjects = get_subjects_list(subjects=db_cursor.fetchall())
+
+
+    data = {
+        'teachers': teachers,
+        'groups': groups,
+        'subjects': subjects,
+    }
+
+    result = []
+    db_cursor.execute('SELECT * FROM t_teachers_groups_subjects')
+    teachers_groups_subjects = db_cursor.fetchall()
+
+    for teacher_group_subject in teachers_groups_subjects:
+        db_cursor.execute('SELECT * FROM t_teacher WHERE id=%s', 
+                          (teacher_group_subject[1],))
+        teacher = db_cursor.fetchone()
+
+        db_cursor.execute('SELECT * FROM t_position WHERE id=%s',
+                          (teacher[3],))
+        position = db_cursor.fetchone()
+
+        db_cursor.execute('SELECT * FROM t_group WHERE id=%s',
+                          (teacher_group_subject[2],))
+        group = db_cursor.fetchone()
+
+        db_cursor.execute('SELECT * FROM t_subject WHERE id=%s',
+                          (teacher_group_subject[3],))
+        subject = db_cursor.fetchone()
+
+        result.append({
+            'id': teacher_group_subject[0],
+            'teacher_id': teacher[0],
+            'teacher_fullname': f'{teacher[1]} {teacher[2]} ({position[1]})',
+            'group_id': group[0],
+            'group_name': group[1],
+            'subject_id': subject[0],
+            'subject_name': subject[1],
+        })
+
+    data['list'] = result
+
+    return data
+
+
 def get_group_list(groups):
     result = []
 
