@@ -9,7 +9,7 @@ group_add_btn.onclick = () => {
         group_name: document.getElementById('group_name_input').value
     }
 
-    fetch('http://127.0.0.1:5000/groups', {
+    fetch('http://127.0.0.1:8000/groups', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -21,8 +21,12 @@ group_add_btn.onclick = () => {
         }
         return response.json()
     }).then(data => {
-        console.log('Данные успено сохранены в БД,', data)
-        window.location.reload()
+        if (data.status == 'FAILED') {
+            alert('Такая группа уже существует в БД')
+        } else {
+            alert('Данные успено сохранены в БД')
+            window.location.reload()
+        }
     }).catch(error => {
         console.log('Ошибка при добавлении в БД,', error)
     })

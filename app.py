@@ -16,13 +16,15 @@ app = Flask(__name__)
 CORS(app=app)
 
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/', methods=['GET', 'POST', 'DELETE', 'PUT'])
 @db_connect
 def index():
     db_cursor = g.db_conn.cursor()
+    
     if request.method == 'GET':
         data = get_index_page_data()
         return render_template(template_name_or_list='index.html', data=data)
+    
     elif request.method == 'POST':
         teacher_id = int(request.json.get('teacher_id'))
         group_id = int(request.json.get('group_id'))
@@ -35,6 +37,25 @@ def index():
 
         return {'status': 'OK'}
 
+    elif request.method == 'DELETE':
+        item_id = int(request.json.get('item_id'))
+
+        db_cursor.execute('DELETE FROM t_teachers_groups_subjects WHERE id=%s', 
+                          (item_id,))
+
+        return {'status': 'OK'}
+
+    elif request.method == 'PUT':
+        teacher_id = int(request.json.get('teacher_id'))
+        group_id = int(request.json.get('group_id'))
+        subject_id = int(request.json.get('subject_id'))
+        data_id = int(request.json.get('data_id'))
+
+        db_cursor.execute('UPDATE t_teachers_groups_subjects SET teacher_id=%s, group_id=%s, subject_id=%s WHERE id=%s',
+                          (teacher_id, group_id, subject_id, data_id))
+
+        return {'status': 'OK'}
+
 
 @app.route('/students', methods=['GET', 'POST', 'PUT', 'DELETE'])
 @db_connect
@@ -42,7 +63,13 @@ def students():
     db_cursor = g.db_conn.cursor()
 
     if request.method == 'GET':
-        db_cursor.execute('SELECT * FROM t_student')
+        if request.args.get('group_id'):
+            group_id = request.args.get('group_id')
+            db_cursor.execute('SELECT * FROM t_student WHERE group_id=%s', 
+                              (group_id,))
+        else:
+            db_cursor.execute('SELECT * FROM t_student')
+
         student_list = db_cursor.fetchall()
         students = get_students_list(students=student_list)
 
@@ -95,9 +122,18 @@ def get_groups():
         return render_template('groups.html', groups=groups)
     elif request.method == 'POST':
         group_name = request.json.get('group_name')
-        db_cursor.execute('INSERT INTO t_group (name) VALUES (%s)', (group_name,))
 
-        return {'status': 'OK'}
+        db_cursor.execute('SELECT * FROM t_group WHERE name=%s',
+                          (group_name,))
+        group = db_cursor.fetchone()
+
+        if group:
+            return {'status': 'FAILED'}
+        else:
+            db_cursor.execute('INSERT INTO t_group (name) VALUES (%s)', 
+                            (group_name,))
+
+            return {'status': 'OK'}
 
 
 @app.route('/teachers', methods=['GET'])
