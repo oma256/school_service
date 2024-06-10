@@ -2,9 +2,8 @@
 
 
 // Логика добавления группы в Базу Данных
-const group_add_btn = document.getElementById('group_add_btn')
 
-group_add_btn.onclick = () => {
+function addData() {
     const data = {
         group_name: document.getElementById('group_name_input').value
     }
@@ -35,11 +34,24 @@ group_add_btn.onclick = () => {
 
 // Логика удаления группы из базы данных
 
-const groupDeleteButtons = document.getElementsByClassName('btn-danger')
+function deleteGroup(groupId) {
+    const data = {group_id: groupId}
 
-for (let button of groupDeleteButtons) {
-    button.addEventListener('click', function (event) {
-        const listItem = event.target.parentElement;
-        listItem.remove();
-    });
+    fetch('http://127.0.0.1:8000/groups', {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+    }).then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok ' + response.statusText);
+        }
+        return response.json()
+    }).then(data => {
+        alert('Группа удалена из БД')
+        window.location.reload()
+    }).catch(error => {
+        alert('Группа связана с другой сущностью в БД, невозможно удалить', error)
+    })
 }

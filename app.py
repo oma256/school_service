@@ -1,5 +1,6 @@
 from flask import Flask, render_template, g, request
 from flask_cors import CORS
+import psycopg2
 from database import db_connect
 
 from helpers import (
@@ -7,8 +8,8 @@ from helpers import (
     get_students_list,
     get_subjects_list,
     get_teachers_list,
-    get_teachers_groups_list,
     get_index_page_data,
+    get_positions_list,
 )
 
 
@@ -103,15 +104,16 @@ def students():
 
     elif request.method == 'DELETE':
         student_id = request.json.get('student_id')
-        
-        db_cursor.execute('DELETE FROM t_student WHERE id=%s', (student_id,))
-
+        try:
+            db_cursor.execute('DELETE FROM t_student WHERE id=%s', (student_id,))
+        except psycopg2.errors.ForeignKeyViolation as e:
+            return {'status': 'FAILED'}
         return {'status': 'OK'}
 
 
-@app.route('/groups', methods=['GET', 'POST'])
+@app.route('/groups', methods=['GET', 'POST', 'DELETE'])
 @db_connect
-def get_groups():
+def groups():
     db_cursor = g.db_conn.cursor()
     
     if request.method == 'GET':
@@ -134,11 +136,17 @@ def get_groups():
                             (group_name,))
 
             return {'status': 'OK'}
+    elif request.method == 'DELETE':
+        group_id = request.json.get('group_id')
+
+        db_cursor.execute('DELETE FROM t_group WHERE id=%s', (group_id,))
+
+        return {'status': 'OK'}
 
 
 @app.route('/teachers', methods=['GET'])
 @db_connect
-def get_teachers():
+def teachers():
     db_cursor = g.db_conn.cursor()
     db_cursor.execute('SELECT * FROM t_teacher;')
     teacher_list = db_cursor.fetchall()
@@ -147,9 +155,20 @@ def get_teachers():
     return render_template('teachers.html', teachers=teachers)
 
 
+@app.route('/positions', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@db_connect
+def positions():
+    db_cursor = g.db_conn.cursor()
+    if request.method == 'GET':
+        db_cursor.execute('SELECT * FROM t_position')
+        positions = get_positions_list(positions=db_cursor.fetchall())
+
+        return render_template('positions.html', positions=positions)
+
+
 @app.route('/subjects', methods=['GET', 'POST'])
 @db_connect
-def get_subjects():
+def subjects():
     db_cursor = g.db_conn.cursor()
 
     if request.method == 'GET':
@@ -163,19 +182,6 @@ def get_subjects():
         db_cursor.execute('INSERT INTO t_subject (name) VALUES(%s)', (subject_name,))
 
         return {'status': 'OK'}
-
-@app.route('/teachers_groups', methods=['GET'])
-@db_connect
-def get_teachers_groups():
-    db_cursor = g.db_conn.cursor()
-    db_cursor.execute('SELECT * FROM t_teachers_groups_subjects;')
-    teachers_groups_list = db_cursor.fetchall()
-    teachers_groups = get_teachers_groups_list(
-        teachers_groups=teachers_groups_list
-    )
-
-    return render_template('teachers_groups.html', 
-                           teachers_groups=teachers_groups)
 
 
 # API for service

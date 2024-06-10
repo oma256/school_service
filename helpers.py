@@ -111,24 +111,10 @@ def get_subjects_list(subjects):
     return result
 
 
-def get_teachers_groups_list(teachers_groups):
+def get_positions_list(positions):
     result = []
-    db_cursor = g.db_conn.cursor()
 
-    for tech_gr in teachers_groups:
-        db_cursor.execute(f'SELECT * FROM t_teacher WHERE id={tech_gr[1]}')
-        teacher = db_cursor.fetchone()
-
-        db_cursor.execute(f'SELECT * FROM t_group WHERE id={tech_gr[2]}')
-        group = db_cursor.fetchone()
-
-        db_cursor.execute(f'SELECT * FROM t_subject WHERE id={tech_gr[3]}')
-        subject = db_cursor.fetchone()
-
-        result.append({
-            'teacher_fullname': f'{teacher[1]} {teacher[2]}',
-            'group_name': group[1],
-            'subject_name': subject[1],
-        })
-
+    for position in positions:
+        result.append({'id': position[0], 'name': position[1]})
+    
     return result
