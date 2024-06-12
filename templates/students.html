@@ -1,24 +1,21 @@
 {% extends 'base.html' %}
 
+{% block style %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/students.css') }}">
+{% endblock %}
+
 {% block content %}
-    <h1>Список студентов</h1>
     <div class="row">
         <div class="col">
-            <input type="text" id="first_name_input" class="form-control" placeholder="Имя" aria-label="group_name">
-        </div>
-        <div class="col">
-            <input type="text" id="last_name_input" class="form-control" placeholder="Фамилия" aria-label="group_name">
-        </div>
-        <div class="col">
-            <select class="form-select" id="group_id_select" aria-label="Default select example">
-                <option selected>Выбрите группу</option>
-                {% for group in groups %}
-                    <option value="{{ group.id }}">{{ group.name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="col">
-            <button id='student_add_btn' type="button" class="btn btn-primary">Добавить</button>
+            <button type="button" 
+                    class="btn btn-primary add-student-btn"
+                    data-bs-toggle="modal" 
+                    data-bs-target="#addModal">
+                    Добавить
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-plus-circle-fill" viewBox="0 0 16 16">
+                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3z"/>
+                    </svg>
+            </button>
         </div>
     </div>
     <table class="table">
@@ -95,6 +92,47 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
                     <button type="button" class="btn btn-primary" id="saveChangesBtn" onclick="saveStudentData()">Сохранить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" tabindex="-1" id="addModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Добавить</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addForm">
+                        <div class="mb-3">
+                            <input type="text" 
+                                   id="first_name_input" 
+                                   class="form-control"
+                                   placeholder="Имя"
+                                   aria-label="first_name">
+                        </div>
+                        <div class="mb-3">
+                            <input type="text" 
+                                   id="last_name_input" 
+                                   class="form-control"
+                                   placeholder="Фамилия"
+                                   aria-label="last_name">
+                        </div>
+                        <div class="mb-3">
+                            <label for="add_group_id" class="form-label">Группа</label>
+                            <select class="form-select" id="add_group_id" name="group_id">
+                                {% for group in groups %}
+                                    <option value="{{ group.id }}">{{ group.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                    <button type="button" class="btn btn-primary" id="addBtn" onclick="addStudent()">Сохранить</button>
                 </div>
             </div>
         </div>

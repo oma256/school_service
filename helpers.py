@@ -97,6 +97,7 @@ def get_teachers_list(teachers):
             'first_name': teacher[1],
             'last_name': teacher[2],
             'position_name': position[1],
+            'position_id': position[0],
         })
 
     return result

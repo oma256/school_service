@@ -144,15 +144,51 @@ def groups():
         return {'status': 'OK'}
 
 
-@app.route('/teachers', methods=['GET'])
+@app.route('/teachers', methods=['GET', 'POST', 'DELETE', 'PUT'])
 @db_connect
 def teachers():
     db_cursor = g.db_conn.cursor()
-    db_cursor.execute('SELECT * FROM t_teacher;')
-    teacher_list = db_cursor.fetchall()
-    teachers = get_teachers_list(teachers=teacher_list)
 
-    return render_template('teachers.html', teachers=teachers)
+    if request.method == 'GET':
+        db_cursor.execute('SELECT * FROM t_teacher')
+        teacher_list = db_cursor.fetchall()
+        teachers = get_teachers_list(teachers=teacher_list)
+        
+        db_cursor.execute('SELECT * FROM t_position')
+        position_list = db_cursor.fetchall()
+        positions = get_positions_list(positions=position_list)
+
+        return render_template('teachers.html', 
+                               teachers=teachers, 
+                               positions=positions)
+
+    elif request.method == 'POST':
+        first_name = request.json.get('first_name')
+        last_name = request.json.get('last_name')
+        position_id = int(request.json.get('position_id'))
+
+        db_cursor.execute('INSERT INTO t_teacher (first_name, last_name, position_id) VALUES(%s, %s, %s)', 
+                          (first_name, last_name, position_id))
+
+        return {'status': 'OK'}
+
+    elif request.method == 'DELETE':
+        teacher_id = int(request.json.get('teacher_id'))
+
+        db_cursor.execute('DELETE FROM t_teacher WHERE id=%s', (teacher_id,))
+
+        return {'status': 'OK'}
+
+    elif request.method == 'PUT':
+        first_name = request.json.get('first_name')
+        last_name = request.json.get('last_name')
+        position_id = int(request.json.get('position_id'))
+        teacher_id = int(request.json.get('teacher_id'))
+
+        db_cursor.execute('UPDATE t_teacher SET first_name=%s, last_name=%s, position_id=%s WHERE id=%s',
+                          (first_name, last_name, position_id, teacher_id))
+
+        return {'status': 'OK'}
 
 
 @app.route('/positions', methods=['GET', 'POST', 'PUT', 'DELETE'])

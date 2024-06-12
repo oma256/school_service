@@ -1,34 +1,5 @@
 'use strict'
 
-// button for add new student to database
-const student_add_btn = document.getElementById('student_add_btn')
-
-student_add_btn.onclick = () => {
-    const data = {
-        first_name: document.getElementById('first_name_input').value,
-        last_name: document.getElementById('last_name_input').value,
-        group_id: document.getElementById('group_id_select').value
-    }
-
-    fetch('http://127.0.0.1:8000/students', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    }).then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok ' + response.statusText);
-        }
-        return response.json()
-    }).then(data => {
-        alert('Данные успено сохранены в БД,')
-        window.location.reload()
-    }).catch(error => {
-        alert('Ошибка при добавлении в БД,', error)
-    })
-}
-
 // button for edit student data to database
 
 const edit_first_name = document.getElementById('edit_first_name')
@@ -99,4 +70,35 @@ function deleteStudent(student_id) {
         alert('Ошибка при удалении из базы данных', error)
     })
     
+}
+
+
+function addStudent() {
+    const firstName = document.getElementById('first_name_input').value
+    const lastName = document.getElementById('last_name_input').value
+    const groupId = document.getElementById('add_group_id').value
+
+    const data = {
+        first_name: firstName,
+        last_name: lastName,
+        group_id: groupId,
+    }
+
+    fetch('http://127.0.0.1:8000/students', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    }).then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok ' + response.statusText);
+        }
+        return response.json()
+    }).then(data => {
+        alert('Студент успешно добавлен базу данных')
+        window.location.reload()
+    }).catch(error => {
+        alert('Ошибка при добавлении в базу данных', error)
+    })
 }
