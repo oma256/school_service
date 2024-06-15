@@ -111,7 +111,7 @@ def students():
         return {'status': 'OK'}
 
 
-@app.route('/groups', methods=['GET', 'POST', 'DELETE'])
+@app.route('/groups', methods=['GET', 'POST', 'DELETE', 'PUT'])
 @db_connect
 def groups():
     db_cursor = g.db_conn.cursor()
@@ -140,6 +140,15 @@ def groups():
         group_id = request.json.get('group_id')
 
         db_cursor.execute('DELETE FROM t_group WHERE id=%s', (group_id,))
+
+        return {'status': 'OK'}
+    
+    elif request.method == 'PUT':
+        group_name = request.json.get('group_name')
+        group_id = request.json.get('group_id')
+
+        db_cursor.execute('UPDATE t_group SET name=%s WHERE id=%s',
+                          (group_name, group_id))
 
         return {'status': 'OK'}
 
@@ -202,7 +211,7 @@ def positions():
         return render_template('positions.html', positions=positions)
 
 
-@app.route('/subjects', methods=['GET', 'POST'])
+@app.route('/subjects', methods=['GET', 'POST', 'DELETE', 'PUT'])
 @db_connect
 def subjects():
     db_cursor = g.db_conn.cursor()
@@ -217,6 +226,20 @@ def subjects():
         subject_name = request.json.get('subject_name')
         db_cursor.execute('INSERT INTO t_subject (name) VALUES(%s)', (subject_name,))
 
+        return {'status': 'OK'}
+    elif request.method == 'DELETE':
+        subject_id = request.json.get('subject_id')
+        db_cursor.execute('DELETE FROM t_subject WHERE id=%s',
+                          (subject_id,))
+        
+        return {'status': 'OK'}
+    elif request.method == 'PUT':
+        subject_id = request.json.get('subject_id')
+        subject_name = request.json.get('subject_name')
+
+        db_cursor.execute('UPDATE t_subject set name=%s WHERE id=%s',
+                          (subject_name, subject_id))
+        
         return {'status': 'OK'}
 
 
