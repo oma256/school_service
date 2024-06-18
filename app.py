@@ -11,17 +11,16 @@ from helpers import (
     get_index_page_data,
     get_positions_list,
 )
+from models import db, TeacherGroupSubject
+from utils import create_app
 
 
-app = Flask(__name__)
-CORS(app=app)
+app = create_app()
 
 
 @app.route('/', methods=['GET', 'POST', 'DELETE', 'PUT'])
-@db_connect
 def index():
-    db_cursor = g.db_conn.cursor()
-    
+
     if request.method == 'GET':
         data = get_index_page_data()
         return render_template(template_name_or_list='index.html', data=data)
@@ -31,18 +30,22 @@ def index():
         group_id = int(request.json.get('group_id'))
         subject_id = int(request.json.get('subject_id'))
 
-        db_cursor.execute(
-            'INSERT INTO t_teachers_groups_subjects (teacher_id, group_id, subject_id) VALUES (%s, %s, %s)',
-            (teacher_id, group_id, subject_id)
+        teacher_group_subject = TeacherGroupSubject(
+            teacher_id=teacher_id,
+            group_id=group_id,
+            subject_id=subject_id,
         )
+        db.session.add(teacher_group_subject)
+        db.session.commit()
 
         return {'status': 'OK'}
 
     elif request.method == 'DELETE':
         item_id = int(request.json.get('item_id'))
 
-        db_cursor.execute('DELETE FROM t_teachers_groups_subjects WHERE id=%s', 
-                          (item_id,))
+        db.session.query(TeacherGroupSubject).filter(
+            TeacherGroupSubject.id == item_id
+        ).delete()
 
         return {'status': 'OK'}
 
@@ -52,8 +55,16 @@ def index():
         subject_id = int(request.json.get('subject_id'))
         data_id = int(request.json.get('data_id'))
 
-        db_cursor.execute('UPDATE t_teachers_groups_subjects SET teacher_id=%s, group_id=%s, subject_id=%s WHERE id=%s',
-                          (teacher_id, group_id, subject_id, data_id))
+        teacher_group_subject = db.session.query(TeacherGroupSubject).filter(
+            TeacherGroupSubject.id == data_id
+        ).first()
+
+        teacher_group_subject.teacher_id = teacher_id
+        teacher_group_subject.group_id = group_id
+        teacher_group_subject.subject_id = subject_id
+
+        db.session.add(teacher_group_subject)
+        db.session.commit()
 
         return {'status': 'OK'}
 
@@ -278,4 +289,5 @@ def subjects():
 #         group_name = request.json.get('group_name')
         
 
-app.run(host='127.0.0.1', port=8000, debug=True)
+if __name__ == "__main__":
+    app.run(host='127.0.0.1', port=8000, debug=True)

@@ -1,18 +1,14 @@
 from flask import g
 
+from models import (
+    db, Teacher, Group, Subject, TeacherGroupSubject, Position
+)
+
 
 def get_index_page_data():
-    db_cursor = g.db_conn.cursor()
-
-    db_cursor.execute('SELECT * FROM t_teacher')
-    teachers = get_teachers_list(teachers=db_cursor.fetchall())
-
-    db_cursor.execute('SELECT * FROM t_group')
-    groups = get_group_list(groups=db_cursor.fetchall())
-
-    db_cursor.execute('SELECT * FROM t_subject')
-    subjects = get_subjects_list(subjects=db_cursor.fetchall())
-
+    teachers = db.session.query(Teacher).all()
+    groups = db.session.query(Group).all()
+    subjects = db.session.query(Subject).all()
 
     data = {
         'teachers': teachers,
@@ -21,34 +17,33 @@ def get_index_page_data():
     }
 
     result = []
-    db_cursor.execute('SELECT * FROM t_teachers_groups_subjects')
-    teachers_groups_subjects = db_cursor.fetchall()
+    teachers_groups_subjects = db.session.query(TeacherGroupSubject).all()
 
     for teacher_group_subject in teachers_groups_subjects:
-        db_cursor.execute('SELECT * FROM t_teacher WHERE id=%s', 
-                          (teacher_group_subject[1],))
-        teacher = db_cursor.fetchone()
+        teacher = db.session.query(Teacher).filter(
+            Teacher.id == teacher_group_subject.teacher_id
+        ).first()
 
-        db_cursor.execute('SELECT * FROM t_position WHERE id=%s',
-                          (teacher[3],))
-        position = db_cursor.fetchone()
+        position = db.session.query(Position).filter(
+            Position.id == teacher.position_id
+        ).first()
 
-        db_cursor.execute('SELECT * FROM t_group WHERE id=%s',
-                          (teacher_group_subject[2],))
-        group = db_cursor.fetchone()
+        group = db.session.query(Group).filter(
+            Group.id == teacher_group_subject.group_id
+        ).first()
 
-        db_cursor.execute('SELECT * FROM t_subject WHERE id=%s',
-                          (teacher_group_subject[3],))
-        subject = db_cursor.fetchone()
+        subject = db.session.query(Subject).filter(
+            Subject.id == teacher_group_subject.subject_id
+        ).first()
 
         result.append({
-            'id': teacher_group_subject[0],
-            'teacher_id': teacher[0],
-            'teacher_fullname': f'{teacher[1]} {teacher[2]} ({position[1]})',
-            'group_id': group[0],
-            'group_name': group[1],
-            'subject_id': subject[0],
-            'subject_name': subject[1],
+            'id': teacher_group_subject.id,
+            'teacher_id': teacher.id,
+            'teacher_fullname': f'{teacher.first_name} {teacher.last_name} ({position.name})',
+            'group_id': group.id,
+            'group_name': group.name,
+            'subject_id': subject.id,
+            'subject_name': subject.name,
         })
 
     data['list'] = result
@@ -108,7 +103,7 @@ def get_subjects_list(subjects):
 
     for subject in subjects:
         result.append({'id': subject[0], 'name': subject[1]})
-    
+
     return result
 
 
