@@ -11,11 +11,16 @@ from helpers import (
     get_index_page_data,
     get_positions_list,
 )
-from models import db, TeacherGroupSubject
+from models import Group, Student, Subject, Teacher, db, TeacherGroupSubject
 from utils import create_app
 
 
 app = create_app()
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    return render_template('login.html')
 
 
 @app.route('/', methods=['GET', 'POST', 'DELETE', 'PUT'])
@@ -47,6 +52,8 @@ def index():
             TeacherGroupSubject.id == item_id
         ).delete()
 
+        db.session.commit()
+
         return {'status': 'OK'}
 
     elif request.method == 'PUT':
@@ -70,143 +77,140 @@ def index():
 
 
 @app.route('/students', methods=['GET', 'POST', 'PUT', 'DELETE'])
-@db_connect
 def students():
-    db_cursor = g.db_conn.cursor()
-
     if request.method == 'GET':
         if request.args.get('group_id'):
-            group_id = request.args.get('group_id')
-            db_cursor.execute('SELECT * FROM t_student WHERE group_id=%s', 
-                              (group_id,))
+            students = db.session.query(Student).filter(
+                Student.group_id == int(request.args.get('group_id'))
+            ).all()
         else:
-            db_cursor.execute('SELECT * FROM t_student')
+            students = db.session.query(Student).all()
 
-        student_list = db_cursor.fetchall()
-        students = get_students_list(students=student_list)
-
-        db_cursor.execute('SELECT * FROM t_group')
-        group_list = db_cursor.fetchall()
-        groups = get_group_list(groups=group_list)
+        students = get_students_list(students=students)
+        groups = get_group_list()
 
         return render_template('students.html', students=students, groups=groups)
-    
-    elif request.method == 'POST':
-        first_name = request.json.get('first_name')
-        last_name = request.json.get('last_name')
-        group_id = int(request.json.get('group_id'))
 
-        db_cursor.execute(
-            'INSERT INTO t_student (first_name, last_name, group_id) VALUES (%s, %s, %s)', 
-            (first_name, last_name, group_id))
+    elif request.method == 'POST':
+        student = Student(
+            first_name = request.json.get('first_name'),
+            last_name = request.json.get('last_name'),
+            group_id = int(request.json.get('group_id'))
+        )
+        db.session.add(student)
+        db.session.commit()
 
         return {'status': 'OK'}
     
     elif request.method == 'PUT':
-        first_name = request.json.get('first_name')
-        last_name = request.json.get('last_name')
-        group_id = int(request.json.get('group_id'))
-        student_id = int(request.json.get('student_id'))
+        student = db.session.query(Student).filter(
+            Student.id == int(request.json.get('student_id'))
+        ).first()
 
-        db_cursor.execute('UPDATE t_student SET first_name=%s, last_name=%s, group_id=%s WHERE id=%s',
-                          (first_name, last_name, group_id, student_id))
+        student.first_name = request.json.get('first_name')
+        student.last_name = request.json.get('last_name')
+        student.group_id = int(request.json.get('group_id'))
+
+        db.session.commit()
 
         return {'status': 'OK'}
 
     elif request.method == 'DELETE':
-        student_id = request.json.get('student_id')
         try:
-            db_cursor.execute('DELETE FROM t_student WHERE id=%s', (student_id,))
-        except psycopg2.errors.ForeignKeyViolation as e:
+            student = db.session.query(Student).filter(
+                Student.id == int(request.json.get('student_id'))
+            ).first()
+            db.session.delete(student)
+            db.session.commit()
+        except Exception as e:
             return {'status': 'FAILED'}
+
         return {'status': 'OK'}
 
 
 @app.route('/groups', methods=['GET', 'POST', 'DELETE', 'PUT'])
-@db_connect
 def groups():
-    db_cursor = g.db_conn.cursor()
-    
     if request.method == 'GET':
-        db_cursor.execute('SELECT * FROM t_group;')
-        group_list = db_cursor.fetchall()
-        groups = get_group_list(groups=group_list)
-
+        groups = get_group_list()
         return render_template('groups.html', groups=groups)
+
     elif request.method == 'POST':
         group_name = request.json.get('group_name')
 
-        db_cursor.execute('SELECT * FROM t_group WHERE name=%s',
-                          (group_name,))
-        group = db_cursor.fetchone()
+        group = db.session.query(Group).filter(
+            Group.name == group_name
+        ).first()
 
         if group:
             return {'status': 'FAILED'}
         else:
-            db_cursor.execute('INSERT INTO t_group (name) VALUES (%s)', 
-                            (group_name,))
-
+            group = Group(name=group_name)
+            db.session.add(group)
+            db.session.commit()
             return {'status': 'OK'}
+    
     elif request.method == 'DELETE':
-        group_id = request.json.get('group_id')
-
-        db_cursor.execute('DELETE FROM t_group WHERE id=%s', (group_id,))
+        group = db.session.query(Group).filter(
+            Group.id == int(request.json.get('group_id'))
+        ).first()
+        db.session.delete(group)
+        db.session.commit()
 
         return {'status': 'OK'}
     
     elif request.method == 'PUT':
-        group_name = request.json.get('group_name')
-        group_id = request.json.get('group_id')
-
-        db_cursor.execute('UPDATE t_group SET name=%s WHERE id=%s',
-                          (group_name, group_id))
+        group = db.session.query(Group).filter(
+            Group.id == int(request.json.get('group_id'))
+        ).first()
+        group.name = request.json.get('group_name')
+        db.session.add(group)
+        db.session.commit()
 
         return {'status': 'OK'}
 
 
 @app.route('/teachers', methods=['GET', 'POST', 'DELETE', 'PUT'])
-@db_connect
 def teachers():
-    db_cursor = g.db_conn.cursor()
-
     if request.method == 'GET':
-        db_cursor.execute('SELECT * FROM t_teacher')
-        teacher_list = db_cursor.fetchall()
-        teachers = get_teachers_list(teachers=teacher_list)
-        
-        db_cursor.execute('SELECT * FROM t_position')
-        position_list = db_cursor.fetchall()
-        positions = get_positions_list(positions=position_list)
+        teachers = get_teachers_list()
+        positions = get_positions_list()
 
         return render_template('teachers.html', 
                                teachers=teachers, 
                                positions=positions)
 
     elif request.method == 'POST':
-        first_name = request.json.get('first_name')
-        last_name = request.json.get('last_name')
-        position_id = int(request.json.get('position_id'))
+        teacher = Teacher(
+            first_name = request.json.get('first_name'),
+            last_name = request.json.get('last_name'),
+            position_id = int(request.json.get('position_id'))
+        )
 
-        db_cursor.execute('INSERT INTO t_teacher (first_name, last_name, position_id) VALUES(%s, %s, %s)', 
-                          (first_name, last_name, position_id))
+        db.session.add(teacher)
+        db.session.commit()
 
         return {'status': 'OK'}
 
     elif request.method == 'DELETE':
-        teacher_id = int(request.json.get('teacher_id'))
+        teacher = db.session.query(Teacher).filter(
+            Teacher.id == int(request.json.get('teacher_id'))
+        ).first()
 
-        db_cursor.execute('DELETE FROM t_teacher WHERE id=%s', (teacher_id,))
+        db.session.delete(teacher)
+        db.session.commit()
 
         return {'status': 'OK'}
 
     elif request.method == 'PUT':
-        first_name = request.json.get('first_name')
-        last_name = request.json.get('last_name')
-        position_id = int(request.json.get('position_id'))
-        teacher_id = int(request.json.get('teacher_id'))
+        teacher = db.session.query(Teacher).filter(
+            Teacher.id == int(request.json.get('teacher_id'))
+        ).first()
 
-        db_cursor.execute('UPDATE t_teacher SET first_name=%s, last_name=%s, position_id=%s WHERE id=%s',
-                          (first_name, last_name, position_id, teacher_id))
+        teacher.first_name = request.json.get('first_name')
+        teacher.last_name = request.json.get('last_name')
+        teacher.position_id = int(request.json.get('position_id'))
+
+        db.session.commit()
 
         return {'status': 'OK'}
 
@@ -223,34 +227,37 @@ def positions():
 
 
 @app.route('/subjects', methods=['GET', 'POST', 'DELETE', 'PUT'])
-@db_connect
 def subjects():
-    db_cursor = g.db_conn.cursor()
-
     if request.method == 'GET':
-        db_cursor.execute('SELECT * FROM t_subject;')
-        subject_list = db_cursor.fetchall()
-        subjects = get_subjects_list(subjects=subject_list)
-
+        subjects = get_subjects_list()
         return render_template('subjects.html', subjects=subjects)
+
     elif request.method == 'POST':
         subject_name = request.json.get('subject_name')
-        db_cursor.execute('INSERT INTO t_subject (name) VALUES(%s)', (subject_name,))
+        subject = Subject(name=subject_name)
+        
+        db.session.add(subject)
+        db.session.commit()
 
         return {'status': 'OK'}
+
     elif request.method == 'DELETE':
-        subject_id = request.json.get('subject_id')
-        db_cursor.execute('DELETE FROM t_subject WHERE id=%s',
-                          (subject_id,))
-        
-        return {'status': 'OK'}
-    elif request.method == 'PUT':
-        subject_id = request.json.get('subject_id')
-        subject_name = request.json.get('subject_name')
+        subject = db.session.query(Subject).filter(
+            Subject.id == int(request.json.get('subject_id'))
+        ).first()
+        db.session.delete(subject)
+        db.session.commit()
 
-        db_cursor.execute('UPDATE t_subject set name=%s WHERE id=%s',
-                          (subject_name, subject_id))
-        
+        return {'status': 'OK'}
+
+    elif request.method == 'PUT':
+        subject = db.session.query(Subject).filter(
+            Subject.id == int(request.json.get('subject_id'))
+        ).first()
+
+        subject.name = request.json.get('subject_name')
+        db.session.commit()
+
         return {'status': 'OK'}
 
 

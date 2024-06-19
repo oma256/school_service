@@ -51,66 +51,70 @@ def get_index_page_data():
     return data
 
 
-def get_group_list(groups):
+def get_group_list():
+    groups = db.session.query(Group).all()
     result = []
 
     for group in groups:
-        result.append({'id': group[0], 'name': group[1]})
+        result.append({'id': group.id, 'name': group.name})
     
     return result
 
 
 def get_students_list(students):
     result = []
-    db_cursor = g.db_conn.cursor()
 
     for student in students:
-        db_cursor.execute(f'SELECT * FROM t_group WHERE id={student[3]}')
-        group = db_cursor.fetchone()
+        group = db.session.query(Group).filter(
+            Group.id == student.group_id
+        ).first()
 
         result.append({
-            'id': student[0], 
-            'first_name': student[1],
-            'last_name': student[2],
-            'group_name': group[1],
-            'group_id': group[0],
+            'id': student.id, 
+            'first_name': student.first_name,
+            'last_name': student.last_name,
+            'group_name': group.name,
+            'group_id': group.id,
         })
 
     return result
 
 
-def get_teachers_list(teachers):
+def get_teachers_list():
+    teachers = db.session.query(Teacher).all()
     result = []
-    db_cursor = g.db_conn.cursor()
 
     for teacher in teachers:
-        db_cursor.execute(f'SELECT * FROM t_position WHERE id={teacher[3]}')
-        position = db_cursor.fetchone()
+        position = db.session.query(Position).filter(
+            Position.id == teacher.position_id
+        ).first()
 
         result.append({
-            'id': teacher[0],
-            'first_name': teacher[1],
-            'last_name': teacher[2],
-            'position_name': position[1],
-            'position_id': position[0],
+            'id': teacher.id,
+            'first_name': teacher.first_name,
+            'last_name': teacher.last_name,
+            'position_name': position.name,
+            'position_id': position.id,
         })
 
     return result
 
 
-def get_subjects_list(subjects):
+def get_subjects_list():
+    subjects = db.session.query(Subject).all()
     result = []
 
     for subject in subjects:
-        result.append({'id': subject[0], 'name': subject[1]})
+        result.append({'id': subject.id, 'name': subject.name})
 
     return result
 
 
-def get_positions_list(positions):
+def get_positions_list():
+    positions = db.session.query(Position).all()
     result = []
 
     for position in positions:
-        result.append({'id': position[0], 'name': position[1]})
+        result.append({'id': position.id, 'name': position.name})
     
     return result
