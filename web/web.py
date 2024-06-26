@@ -1,6 +1,7 @@
-from flask import Blueprint, request, render_template
+from flask import Blueprint, flash, redirect, request, render_template, url_for
+from flask_login import login_required, login_user, logout_user
 from helpers import (
-    get_index_page_data, get_group_list, get_students_list,
+    check_password, get_index_page_data, get_group_list, get_students_list,
     get_positions_list, get_teachers_list, get_subjects_list,
 )
 from models import (
@@ -18,16 +19,29 @@ def login():
             User.email == request.form.get('email')
         ).first()
 
-        print(user.first_name)
-        print(user.last_name)
-        print(user.email)
-        print(user.phone_number)
-        print(user.password)
+        if not user:
+            flash('Пользователь с такой почтой не существует в БД')
+            return redirect(url_for('web.login'))
+
+        if not check_password(user_password=user.password, 
+                              request_password=request.form.get('password')):
+            flash('Неверный пароль')
+            return redirect(url_for('web.login'))
+        else:
+            login_user(user)
+            return redirect(url_for('web.index'))
 
     return render_template('login.html')
 
 
+@web_page.route('/logout', methods=['GET', 'POST'])
+def logout():
+    logout_user()
+    return redirect(url_for('web.login'))
+
+
 @web_page.route('/', methods=['GET', 'POST', 'DELETE', 'PUT'])
+@login_required
 def index():
 
     if request.method == 'GET':
@@ -82,6 +96,7 @@ def index():
     
 
 @web_page.route('/students', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@login_required
 def students():
     if request.method == 'GET':
         if request.args.get('group_id'):
@@ -134,6 +149,7 @@ def students():
     
 
 @web_page.route('/groups', methods=['GET', 'POST', 'DELETE', 'PUT'])
+@login_required
 def groups():
     if request.method == 'GET':
         groups = get_group_list()
@@ -175,6 +191,7 @@ def groups():
 
 
 @web_page.route('/teachers', methods=['GET', 'POST', 'DELETE', 'PUT'])
+@login_required
 def teachers():
     if request.method == 'GET':
         teachers = get_teachers_list()
@@ -221,6 +238,7 @@ def teachers():
     
 
 @web_page.route('/positions', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@login_required
 def positions():
     if request.method == 'GET':
         positions = get_positions_list()
@@ -229,6 +247,7 @@ def positions():
     
 
 @web_page.route('/subjects', methods=['GET', 'POST', 'DELETE', 'PUT'])
+@login_required
 def subjects():
     if request.method == 'GET':
         subjects = get_subjects_list()

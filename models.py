@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import UserMixin
 
 from sqlalchemy import Column, Integer, String, ForeignKey
 
@@ -55,7 +56,7 @@ class TeacherGroupSubject(Base):
     subject_id = Column(Integer, ForeignKey('t_subject.id'))
 
 
-class User(Base):
+class User(UserMixin, Base):
     __tablename__ = 't_user'
 
     id = Column(Integer, primary_key=True)

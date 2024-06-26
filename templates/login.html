@@ -8,6 +8,13 @@
     <div class="column is-4 is-offset-4">
         <center><h3 class="title">Авторизация</h3></center>
         <div class="box">
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="notification is-danger">
+                        {{ messages[0] }}
+                    </div>
+                {% endif %}
+            {% endwith %}
             <form method="POST" action="/login">
                 <div class="field">
                     <div class="control">

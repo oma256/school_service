@@ -1,3 +1,4 @@
+from hashlib import md5
 from flask import g
 
 from models import (
@@ -118,3 +119,11 @@ def get_positions_list():
         result.append({'id': position.id, 'name': position.name})
     
     return result
+
+
+def check_password(user_password, request_password):
+    hashed_password = md5(request_password.encode()).hexdigest()
+
+    if user_password != hashed_password:
+        return False
+    return True
