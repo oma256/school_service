@@ -2,6 +2,7 @@ from flask import Flask
 from flask_cors import CORS
 from flask_login import LoginManager
 from flask_migrate import Migrate
+from flask_jwt_extended import JWTManager
 
 from models import User, db
 from web.web import web_page
@@ -26,5 +27,6 @@ def create_app():
     db.init_app(app=app)
     Migrate(app=app, db=db)
     CORS(app=app)
+    JWTManager(app=app)
 
     return app

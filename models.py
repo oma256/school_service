@@ -28,7 +28,7 @@ class Group(Base):
     __tablename__ = 't_group'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(128))
+    name = Column(String(128), unique=True)
 
 
 class Student(Base):
